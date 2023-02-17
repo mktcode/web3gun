@@ -15,7 +15,6 @@
   "license": "ISC",
   "dependencies": {
     "@web3gun/indexer": "workspace:^1.0.0",
-    "ethers": "^6.0.4",
     "gun": "^0.2020.1239"
   }
 }

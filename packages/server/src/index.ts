@@ -1,4 +1,3 @@
-import { JsonRpcProvider } from 'ethers'
 import express from 'express'
 import Gun from 'gun'
 import { Web3GunIndexer } from '@web3gun/indexer'
@@ -10,7 +9,7 @@ declare module 'gun' {
 }
 
 export class Web3GunServer extends Web3GunIndexer {
-  constructor(provider: string | JsonRpcProvider, port: number) {
+  constructor(port: number) {
     const server = express()
     server.use(Gun.serve);
     
@@ -22,6 +21,6 @@ export class Web3GunServer extends Web3GunIndexer {
       })
     });
 
-    super(provider, storage)
+    super(storage)
   }
 }

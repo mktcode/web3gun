@@ -1,6 +1,6 @@
 # Web3 Gun
 
-Your friendly neighborhood web3 indexer. Low-profile, schemaless, offline-first, free!
+Low-profile, schemaless, offline-first, free web3 indexer!
 
 ## Client
 
@@ -8,7 +8,7 @@ Your friendly neighborhood web3 indexer. Low-profile, schemaless, offline-first,
 npm i @web3gun/client
 ```
 
-You can use the indexer in the browser. No server required. Indexed data is distributed to all clients automatically via a public relay.
+You can use the indexer in the browser. No server required. Indexed data is distributed to all clients automatically.
 
 All you need to do is to implement listeners for your contract events. The `indexer.contract` function will hand you the `contract` instance, connected to the provider you pass to the client and a `storage` instance that you can use to store your data.
 
@@ -16,7 +16,8 @@ All you need to do is to implement listeners for your contract events. The `inde
 // indexer.js
 import { Web3GunClient } from '@web3gun/client'
 
-export const indexer = new Web3GunClient(jsonRpcProvider); // or URL
+export const indexer = new Web3GunClient(); // or URL
+indexer.setProvider(jsonRpcProvider)
 
 indexer.contract(ADDRESS, ABI, async (contract, storage) => {
   contract.on("Transfer", async (from, to, amount, event) => {
@@ -65,7 +66,8 @@ You probably want to make sure your data is available around the clock. You can 
 // server.js
 import { Web3GunServer } from '@web3gun/server'
 
-const indexer = new Web3GunServer(PROVIDER_URL, PORT)
+const indexer = new Web3GunServer(PORT)
+indexer.setProvider(PROVIDER_URL)
 
 indexer.contract(ADDRESS, ABI, (contract, storage) => {
   contract.on("Transfer", async (from, to, amount, event) => {
@@ -93,7 +95,11 @@ Use your relay (or multiple) in the client:
 
 ```javascript
 const relays = ["http://localhost:4200"]
-export const indexer = new Web3GunClient(jsonRpcProvider, relays);
+const indexer = new Web3GunClient(jsonRpcProvider, relays);
+
+indexer.storage.get("interestingTransfers").on((transfer, txHash) => {
+  console.log(transfer, txHash)
+})
 ```
 
 If you want to run the indexer both in the client as well as on a server, you probably want to move your listeners to a separate file and import them in both places.

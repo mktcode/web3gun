@@ -3,17 +3,19 @@ import { IGunInstance } from "gun/types/gun/IGunInstance"
 
 export abstract class Web3GunIndexer {
   contracts: Contract[] = []
-  provider: JsonRpcProvider
+  provider: JsonRpcProvider | undefined
   storage: IGunInstance
 
-  constructor(provider: string | JsonRpcProvider, storage: IGunInstance) {
+  constructor(storage: IGunInstance) {
+    this.storage = storage;
+  }
+
+  setProvider(provider: string | JsonRpcProvider) {
     if (typeof provider === 'string') {
       this.provider = new JsonRpcProvider(provider)
     } else {
       this.provider = provider
     }
-
-    this.storage = storage;
   }
   
   contract(
@@ -21,6 +23,8 @@ export abstract class Web3GunIndexer {
     abi: InterfaceAbi,
     callback: (contract: Contract, storage: IGunInstance) => void
   ) {
+    if (!this.provider) throw new Error('Provider not set. Call setProvider first.')
+
     const contract = new Contract(address, abi, this.provider)
     this.contracts.push(contract)
     callback(contract, this.storage)
