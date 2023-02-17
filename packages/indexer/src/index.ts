@@ -1,4 +1,4 @@
-import { InterfaceAbi, Contract, JsonRpcProvider } from "ethers"
+import { InterfaceAbi, Contract, JsonRpcProvider, EventFragment, EventLog } from "ethers"
 import { IGunInstance } from "gun/types/gun/IGunInstance"
 
 export abstract class Web3GunIndexer {
@@ -26,22 +26,42 @@ export abstract class Web3GunIndexer {
     callback(contract, this.storage)
   }
 
-  replay() {
-    this.contracts.forEach(async (contract) => {
-      contract.interface.forEachEvent(async (event) => {
-        const eventName = event.name
-        const listeners = await contract.listeners(eventName)
-        listeners.forEach(async () => {
-          const pastEvents = await contract.queryFilter(eventName)
-          pastEvents.forEach(async (pastEvent) => {
-            const decodedEventData = contract.interface.decodeEventLog(eventName, pastEvent.data, pastEvent.topics)
-            contract.emit(
-              eventName,
-              ...decodedEventData
-            )
-          })
-        })
-      })
-    })
+  async replay() {
+    for (const contract of this.contracts) {
+      const events = contract.interface.fragments.filter(
+        (fragment) => fragment.type === "event"
+      ) as EventFragment[];
+      const eventNames = events.map((event) => event.name);
+  
+      const allPastEvents = [];
+  
+      for (const eventName of eventNames) {
+        const pastEvents = await contract.queryFilter(eventName) as EventLog[];
+        allPastEvents.push(...pastEvents);
+      }
+  
+      allPastEvents.sort((a, b) =>
+        a.blockNumber === b.blockNumber
+          ? a.transactionIndex - b.transactionIndex
+          : a.blockNumber - b.blockNumber
+      );
+  
+      for (const pastEvent of allPastEvents) {
+        const eventName = pastEvent.fragment.name;
+        const listeners = await contract.listeners(eventName) as (
+          // workaround because ethers doesn't account for async listeners
+          ((...args: Array<any>) => Promise<void>) | ((...args: Array<any>) => void)
+        )[];
+        const decodedEventData = contract.interface.decodeEventLog(
+          eventName,
+          pastEvent.data,
+          pastEvent.topics
+        );
+  
+        for (const listener of listeners) {
+          await listener(...decodedEventData);
+        }
+      }
+    };
   }
 }
