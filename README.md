@@ -8,7 +8,9 @@ Your friendly neighborhood web3 indexer. Low-profile, schemaless, offline-first,
 npm i @web3gun/client
 ```
 
-You can use the indexer in the browser. No server required. Indexed data is shared across all clients automatically via a public relay. In your web app you can do this:
+You can use the indexer in the browser. No server required. Indexed data is distributed to all clients automatically via a public relay.
+
+All you need to do is to implement listeners for your contract events. The `indexer.contract` function will hand you the `contract` instance, connected to the provider you pass to the client and a `storage` instance that you can use to store your data.
 
 ```javascript
 // indexer.js
@@ -92,4 +94,14 @@ Use your relay (or multiple) in the client:
 ```javascript
 const relays = ["http://localhost:4200"]
 export const indexer = new Web3GunClient(jsonRpcProvider, relays);
+```
+
+If you want to run the indexer both in the client as well as on a server, you probably want to move your listeners to a separate file and import them in both places.
+
+## Replaying
+
+You can easily replay all events you implemented listeners for.
+
+```javascript
+indexer.replay()
 ```
