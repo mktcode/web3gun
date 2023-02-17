@@ -1,0 +1,12 @@
+{
+	"scripts": {
+		"build:client": "pnpm --filter client build",
+		"build:indexer": "pnpm --filter indexer build",
+		"build:server": "pnpm --filter server build",
+		"build": "pnpm build:client && pnpm build:indexer && pnpm build:server"
+	},
+	"devDependencies": {
+		"tsup": "^6.6.3",
+		"typescript": "^4.9.5"
+	}
+}
